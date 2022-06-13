@@ -1,0 +1,72 @@
+body {
+    font-family: sans-serif;
+    color: #fff;
+    background-color: #000;
+}
+
+main {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    display: flex;
+}
+
+main > div {
+    height: 100%;
+}
+
+#maze-container {
+    width: 40%;
+    background-color: #000;
+}
+
+#brickyard-root {
+    flex-grow: 1;
+    background-color: #111;
+}
+
+#truth-table {
+    height: 200px;
+    width: 200px;
+    background-color: red;
+    display: none;
+}
+
+.logic-brick {
+    background-color: red;
+    position: absolute;
+    padding: 4px;
+    border-radius: 2px;
+    user-select: none;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logic-brick.and-brick {
+    background-color: green;
+}
+
+.logic-brick.or-brick {
+    background-color: blue;
+}
+
+.logic-brick.active {
+    box-shadow: 0 0 0 2px yellow;
+}
+
+.logic-brick .label {
+    font-size: 16px;
+    margin: 0 8px;
+}
+
+.logic-brick .drop-slot {
+    min-height: 24px;
+    min-width: 24px;
+    background-color: rgba(255, 255, 255, 0.75);
+    box-shadow: inset 0 2px 3px 0 rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+    border-radius: 1px;
+}
