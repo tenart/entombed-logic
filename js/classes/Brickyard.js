@@ -2,10 +2,21 @@ import utils from "../utils.js";
 import LogicBrick from "./LogicBrick.js";
 
 export default class Brickyard {
+
+    /**
+     * Construct a new brickyard instance.
+     * @returns {Brickyard} The created instance.
+     */
     constructor() {
+        // Keep track of bricks.
         this.rootHTML = utils.getBrickyardRoot();
         this.allBricks = [];
         this.rootBricks = [];
+        // For dragging.
+        this._currentlyDraggingObject = undefined;
+        this._currentlyDraggingHTML = undefined;
+        this._cursorOffset = utils.getZeroPosition();
+        
         this._attachEventListeners();
     }
 
@@ -77,15 +88,12 @@ export default class Brickyard {
     /**
      * Find a brick by its ID.
      * @param {String} brickID The ID of the brick to look for.
-     * @returns {Object} The result object {brick: LogicBrick, index: Number}.
+     * @returns {LogicBrick} The found logic brick. Undefined if not found.
      */
     findBrickByID(brickID) {
         for(let i = 0; i < this.allBricks.length; i++) {
             if(this.allBricks[i].getID() === brickID) {
-                return {
-                    brick: this.allBricks[i], 
-                    index: i
-                }
+                return this.allBricks[i];
             }
         }
         return undefined;
@@ -108,14 +116,58 @@ export default class Brickyard {
 
     _attachEventListeners() {
         this.rootHTML.addEventListener("mousedown", (event) => {this._onMouseDown(event)});
+        this.rootHTML.addEventListener("mousemove", (event) => {this._onMouseMove(event)});
+        this.rootHTML.addEventListener("mouseup", (event) => {this._onMouseUp(event)});
     }
 
+    // Drag start.
     _onMouseDown(event) {
-        const targetBrickHTML = event.target.closest(".logic-brick");
-        if(targetBrickHTML === null || targetBrickHTML === undefined) { return }
-        const targetBrickID = targetBrickHTML.getAttribute("id");
-        const targetBrick = this.findBrickByID(targetBrickID);
-        // console.log(targetBrickHTML);
-        console.log("Clicked on", targetBrick.brick);
+        const cursorPosition = {x: event.pageX, y: event.pageY}
+        // Find closest HTML element with the "draggable" class.
+        const targetHTML = event.target.closest(".draggable");
+        if(targetHTML === null || targetHTML === undefined) { return }
+        // Get ID and classes from HTML element.
+        const targetID = targetHTML.getAttribute("id");
+        // If clicked on element is a logic brick.
+        if(this._checkIfBrick(targetHTML)) {
+            const targetBrick = this.findBrickByID(targetID);
+            this._currentlyDraggingObject = targetBrick;
+            this._currentlyDraggingHTML = targetHTML;
+            this._cursorOffset = utils.getPositionDiff(utils.getHTMLPosition(targetHTML, true), cursorPosition);
+            console.log("Dragging", this._currentlyDraggingObject.getID());
+        }
+    }
+
+    // During drag.
+    _onMouseMove(event) {
+        const cursorPosition = {x: event.pageX, y: event.pageY}
+        // If something is being dragged.
+        if(this._currentlyDraggingObject !== undefined && this._currentlyDraggingHTML !== undefined) {
+            // If dragged item is a logic brick, detach parent if exists.
+            if(this._checkIfBrick(this._currentlyDraggingHTML) && this._currentlyDraggingObject.getParent() !== undefined) {
+                this._currentlyDraggingObject.detachParent();
+            }
+            const dragToPosition = utils.getPositionDiff(this._cursorOffset, cursorPosition);
+            this._currentlyDraggingObject.setPosition(dragToPosition);
+            this._currentlyDraggingObject.bringToFront();
+        }
+    }
+
+    // Drag end.
+    _onMouseUp(event) {
+        console.log("Dropping", this._currentlyDraggingObject.getID());
+        this._currentlyDraggingObject = undefined;
+        this._currentlyDraggingHTML = undefined;
+        this._cursorOffset = utils.getZeroPosition();
+    }
+
+    /**
+     * Checks an HTML element to see if it's a logic brick.
+     * @param {HTMLElement} target HTML element to check if a brick.
+     * @returns {Boolean} True if HTML element is a logic brick.
+     */
+    _checkIfBrick(target) {
+        const targetIsBrick = target.classList.contains("logic-brick");
+        return targetIsBrick;
     }
 }

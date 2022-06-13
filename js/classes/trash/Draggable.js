@@ -1,4 +1,4 @@
-import utils from "../utils.js";
+import utils from "../../utils.js";
 
 export default class Draggable {
 
@@ -9,11 +9,11 @@ export default class Draggable {
      * @param {String} HTMLString HTML string to represent the new element.
      * @returns {Draggable} A new instance of a draggable element.
      */
-    constructor(id = utils.newID(), position = {x: 0, y: 0}, HTMLString = utils.makeHTMLStringFor.defaultDraggable(id)) {
+    constructor(id = utils.newID(), position = utils.getZeroPosition(), HTMLString = utils.makeHTMLStringFor.defaultDraggable(id)) {
         this.id = id;
         this.HTMLNode = this.createHTMLNode(HTMLString);
         this.position = this.setPosition(position);
-        this.cursorOffset = {x: 0, y: 0};
+        this.cursorOffset = utils.getZeroPosition();
         this.isDragging = false;
     }
 
@@ -25,8 +25,8 @@ export default class Draggable {
     setPosition(position) {
         // Validate position argument.
         if(Number.isNaN(position.x) || Number.isNaN(position.y)) {
-            console.warn(this.id, "One or more values is not a number. Defaulting to", {x: 0, y: 0});
-            position = {x: 0, y: 0}
+            console.warn(this.id, "One or more values is not a number. Defaulting to", utils.getZeroPosition());
+            position = utils.getZeroPosition();
         }
         // Update internal position and CSS position.
         this.position = position;

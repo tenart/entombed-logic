@@ -20,6 +20,8 @@ const brickK = brickyard.createBrick("and", {x: 300, y: 300});
 const brickL = brickyard.createBrick("not", {x: 320, y: 320});
 const brickM = brickyard.createBrick("or", {x: 340, y: 340});
 
+const brickO = brickyard.createBrick("not", {x: 340, y: 340});
+
 // Attaching children directly.
 brickA.attachChild(brickB, "left");
 brickA.attachChild(brickC, "right");

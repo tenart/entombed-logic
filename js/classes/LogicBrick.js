@@ -8,8 +8,6 @@ export default class LogicBrick {
      * Construct new logic brick.
      * @param {String} type The type of logic for this brick. Can be "and", "or", or "not".
      * @param {Object} position X and Y pixel position in the form of {x: Number, y: Number}.
-     * @param {Object} parent A parent to attach to in the form {brick: LogicBrick, slot: "left" | "right"}. Can be undefined.
-     * @param {Object} children Children logic bricks in the form of {left: LogicBrick, right: LogicBrick}. Can be undefined.
      * @param {Brickyard} brickyard The brickyard this brick is a part of.
      * @return {LogicBrick} A new instance of a logic brick.
      */
@@ -33,24 +31,9 @@ export default class LogicBrick {
         }
         // For dragging.
         this.position = this.setPosition(position);
-        this._cursorOffset = undefined;
-        this._isDragging = false;
+        // this._isDragging = false;
         // Brickyard reference.
         this._brickyard = brickyard;
-        
-        // Attach parent and children if provided.
-        // if(parent !== undefined) {
-        //     if(parent.brick !== undefined && ["left", "right"].includes(parent.slot)) {
-        //         this.attachParent(parent.brick, parent.slot);
-        //     }
-        // }
-        // if(children !== undefined) {
-        //     if(children.left !== undefined) { this.attachChild(children.left, "left") }
-        //     if(children.right !== undefined) { this.attachChild(children.right, "right") }
-        // }
-
-        // Attach event listeners.
-        // this._attachEventListeners();
     }
 
     // SETTERS
@@ -63,8 +46,8 @@ export default class LogicBrick {
     setPosition(position) {
         // Validate position argument.
         if(Number.isNaN(position.x) || Number.isNaN(position.y)) {
-            console.warn(this.id, "One or more values is not a number. Defaulting to", {x: 0, y: 0});
-            position = {x: 0, y: 0}
+            console.warn(this.id, "One or more values is not a number. Defaulting to", utils.getZeroPosition());
+            position = utils.getZeroPosition();
         }
         // Update internal position and CSS position.
         this.position = position;
@@ -195,7 +178,7 @@ export default class LogicBrick {
         this.parent = parent;
         this.parentSlot = slot;
         // Set child positioning to sit nicely inside parent's HTML.
-        this.setPosition({x: 0, y: 0});
+        this.setPosition(utils.getZeroPosition());
         this._HTMLNode.style.position = "initial";
         // If parent does not have child in this slot, attach self as child.
         if(parent.getChildren()[slot] === undefined && !doubleLinkCall) {
@@ -249,7 +232,7 @@ export default class LogicBrick {
         this.parent = undefined;
         this.parentSlot = undefined;
         // Reset internal position and HTML position.
-        this.setPosition(utils.getHTMLPosition(this._HTMLNode));
+        this.setPosition(utils.getHTMLPosition(this._HTMLNode, true));
         this._HTMLNode.style.position = "absolute";
         // Detach own HTML from parent HTML.
         this.bringToFront();
@@ -291,7 +274,7 @@ export default class LogicBrick {
      _createBrickHTML() {
         // Insert new HTML element.
         utils.getBrickyardRoot().insertAdjacentHTML("beforeend", `
-            <div id="${this.id}" class="logic-brick ${this.type}-brick">
+            <div id="${this.id}" class="logic-brick ${this.type}-brick draggable" data-type="${this.type}">
                 <div class="drop-slot slot-left"></div>
                 <p class="label">${this.type.toUpperCase()}</p>
                 <div class="drop-slot slot-right"></div>
@@ -300,81 +283,4 @@ export default class LogicBrick {
         // Return newly appended HTML element.
         return document.getElementById(this.id);
     }
-
-
-
-
-
-
-
-    // /**
-    //  * Helper function to attach event listeners to this HTML element.
-    //  * Should NOT be called directly. 
-    //  */
-    // _attachEventListeners() {
-    //     // _dragging handler is attached to document since cursor may leave
-    //     // brick's bounding box when cursor is moved quickly.
-    //     this._HTMLNode.addEventListener("mousedown", (event) => {this._dragStart(event)});
-    //     document.addEventListener("mousemove", (event) => {this._dragging(event)});
-    //     this._HTMLNode.addEventListener("mouseup", (event) => {this._dragStop(event)});
-    // }
-
-    // /**
-    //  * Helper handler for starting drag.
-    //  * Should NOT be called directly. 
-    //  */
-    // _dragStart(event) {
-    //     // console.log(`Dragging #${this.id}`);
-
-    //     // Get cursor's offset at moment of mouse down and set isDragging flag to true.
-
-    //     const myPosition = utils.getHTMLPosition(this._HTMLNode);
-    //     const cursorPosition = {x: event.clientX, y: event.clientY}
-    //     this._cursorOffset = utils.getPositionDiff(myPosition, cursorPosition);
-        
-
-
-    //     // If self is a child, detach from parent and prevent parents from being dragged
-
-    //     if(this.parent !== undefined) {
-    //         this.detachParent();
-    //         this.bringToFront();
-    //         this.setPosition(myPosition);
-    //         this._isDragging = true;
-    //         this._HTMLNode.classList.add("active");
-    //     }
-
-
-
-
-
-    //     // Bring HTML element to front when drag starts.
-
-        
-    // }
-
-    // /**
-    //  * Helper handler when being dragged.
-    //  * Should NOT be called directly. 
-    //  */
-    // _dragging(event) {
-    //     // Set brick's position to cursor minus offset.
-    //     if(this._isDragging) {
-    //         const cursorPosition = {x: event.clientX, y: event.clientY}
-    //         const newPosition = utils.getPositionDiff(this._cursorOffset, cursorPosition);
-    //         this.setPosition(newPosition);
-    //     }
-    // }
-
-    // /**
-    //  * Helper handler for stopping drag.
-    //  * Should NOT be called directly. 
-    //  */
-    // _dragStop() {
-    //     console.log(this.id, "Dragging stopped.");
-    //     // Reset cursor's offset and set isDragging flag to false.
-    //     this._isDragging = false;
-    //     this._cursorOffset = undefined;
-    //     this._HTMLNode.classList.remove("active");
-    // }
 }

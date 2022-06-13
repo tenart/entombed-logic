@@ -1,4 +1,4 @@
-import utils from "../utils.js";
+import utils from "../../utils.js";
 import Draggable from "./Draggable.js";
 
 /**
@@ -18,7 +18,7 @@ export default class LogicBrick extends Draggable {
      * @param {Brickyard} brickyard The brickyard this brick is a part of.
      * @return {LogicBrick} A new instance of a logic brick.
      */
-    constructor(type, position = {x: 0, y: 0}, brickyard) {
+    constructor(type, position = utils.getZeroPosition(), brickyard) {
         // Generate new ID and HTML to override defaults from super.
         const id = `${type}-${utils.newID()}`.toLowerCase();
         const HTMLString = utils.makeHTMLStringFor.twoSlotBrick(id, type);
@@ -155,7 +155,7 @@ export default class LogicBrick extends Draggable {
         this.parent = parent;
         this.parentSlot = slot;
         // Set child positioning to sit nicely inside parent's HTML.
-        super.setPosition({x: 0, y: 0});
+        super.setPosition(utils.getZeroPosition());
         super.getHTMLNode().style.position = "initial";
         // If parent does not have child in this slot, attach self as child.
         if(parent.getChildren()[slot] === undefined && !doubleLinkCall) {

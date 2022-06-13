@@ -33,30 +33,31 @@ const utils = {
     /**
      * Get the position of an HTML element relative to the whole document.
      * @param {HTMLElement} htmlNode The HTML element to get the position of.
+     * @param {Boolean} round Whether or not to round the result. Defaults to false.
      * @returns {Object} The position in the form {x: Number, y: Number}.
      */
-    getHTMLPosition: (htmlNode) => {
+    getHTMLPosition: (htmlNode, round = false) => {
         const elementBounds = htmlNode.getBoundingClientRect();
-        return {x: elementBounds.left, y: elementBounds.top}
-    },
-    // UN-USED FOR NOW
-    makeHTMLStringFor: {
-        twoSlotBrick: (id, type) => {
-            return `
-                <div id="${id}" class="draggable-element logic-brick ${type}-brick">
-                    <div class="drop-slot slot-left"></div>
-                    <p class="label">${type.toUpperCase()}</p>
-                    <div class="drop-slot slot-right"></div>
-                </div>
-            `
-        },
-        defaultDraggable: (id) => {
-            return `
-                <div id="${id}" class="draggable-element draggable-default">
-                    DRAG ME
-                </div>
-            `;
+        const position = {
+            x: elementBounds.left, 
+            y: elementBounds.top
         }
+        const roundedPosition = {
+            x: Math.round(position.x),
+            y: Math.round(position.y)
+        }
+        if(round) {
+            return roundedPosition;
+        } else {
+            return position;
+        }
+    },
+    /**
+     * Get a zero position object for convenience.
+     * @returns {Object} {x: 0, y: 0}.
+     */
+    getZeroPosition: () => {
+        return {x: 0, y: 0}
     }
 }
 
