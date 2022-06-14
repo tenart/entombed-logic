@@ -13,10 +13,10 @@ export default class Brickyard {
         this.allBricks = [];
         this.rootBricks = [];
         // For dragging.
-        this._currentlyDraggingObject = undefined;
-        this._currentlyDraggingHTML = undefined;
-        this._cursorOffset = utils.getZeroPosition();
-        
+        this._draggingObject = undefined;
+        this._draggingHTML = undefined;
+        this._draggingOffset = utils.getZeroPosition();
+        // Attach event listeners.
         this._attachEventListeners();
     }
 
@@ -67,7 +67,7 @@ export default class Brickyard {
     }
 
     /**
-     * Print all root brick IDs and indices.
+     * Print all brick IDs and indices.
      */
     printAllBrickIDs() {
         const total = this.allBricks.length;
@@ -77,6 +77,9 @@ export default class Brickyard {
         });
     }
 
+    /**
+     * Print all root brick IDs and indices.
+     */
     printRootBrickIDs() {
         const total = this.rootBricks.length;
         console.log(`${total} root brick ${total === 1 ? "ID" : "IDs"}:`);
@@ -108,16 +111,18 @@ export default class Brickyard {
         let newRootBricks = [];
         this.allBricks.forEach((thisBrick) => {
             // If this brick has no parent, it is a root brick.
-            if(thisBrick.getParent() === undefined) { newRootBricks.push(thisBrick) }
+            if(!thisBrick.hasParent()) { 
+                newRootBricks.push(thisBrick) 
+            }
         })
         // console.log(newRootBricks);
         this.rootBricks = newRootBricks;
     }
 
     _attachEventListeners() {
-        this.rootHTML.addEventListener("mousedown", (event) => {this._onMouseDown(event)});
-        this.rootHTML.addEventListener("mousemove", (event) => {this._onMouseMove(event)});
-        this.rootHTML.addEventListener("mouseup", (event) => {this._onMouseUp(event)});
+        document.addEventListener("mousedown", (event) => {this._onMouseDown(event)});
+        document.addEventListener("mousemove", (event) => {this._onMouseMove(event)});
+        document.addEventListener("mouseup", (event) => {this._onMouseUp(event)});
     }
 
     // Drag start.
@@ -129,12 +134,12 @@ export default class Brickyard {
         // Get ID and classes from HTML element.
         const targetID = targetHTML.getAttribute("id");
         // If clicked on element is a logic brick.
-        if(this._checkIfBrick(targetHTML)) {
+        if(this._isBrick(targetHTML)) {
             const targetBrick = this.findBrickByID(targetID);
-            this._currentlyDraggingObject = targetBrick;
-            this._currentlyDraggingHTML = targetHTML;
-            this._cursorOffset = utils.getPositionDiff(utils.getHTMLPosition(targetHTML, true), cursorPosition);
-            console.log("Dragging", this._currentlyDraggingObject.getID());
+            this._draggingObject = targetBrick;
+            this._draggingHTML = targetHTML;
+            this._draggingOffset = utils.getPositionDiff(utils.getHTMLPosition(targetHTML, true), cursorPosition);
+            console.log("Dragging", this._draggingObject.getID());
         }
     }
 
@@ -142,32 +147,48 @@ export default class Brickyard {
     _onMouseMove(event) {
         const cursorPosition = {x: event.pageX, y: event.pageY}
         // If something is being dragged.
-        if(this._currentlyDraggingObject !== undefined && this._currentlyDraggingHTML !== undefined) {
+        if(this._isDragging()) {
             // If dragged item is a logic brick, detach parent if exists.
-            if(this._checkIfBrick(this._currentlyDraggingHTML) && this._currentlyDraggingObject.getParent() !== undefined) {
-                this._currentlyDraggingObject.detachParent();
+            if(this._isBrick(this._draggingObject) && this._draggingObject.hasParent()) {
+                this._draggingObject.detachParent();
             }
-            const dragToPosition = utils.getPositionDiff(this._cursorOffset, cursorPosition);
-            this._currentlyDraggingObject.setPosition(dragToPosition);
-            this._currentlyDraggingObject.bringToFront();
+            const dragToPosition = utils.getPositionDiff(this._draggingOffset, cursorPosition);
+            this._draggingObject.setPosition(dragToPosition);
+            this._draggingObject.bringToFront();
         }
     }
 
     // Drag end.
     _onMouseUp(event) {
-        console.log("Dropping", this._currentlyDraggingObject.getID());
-        this._currentlyDraggingObject = undefined;
-        this._currentlyDraggingHTML = undefined;
-        this._cursorOffset = utils.getZeroPosition();
+        if(this._isDragging()) {
+            console.log("Dropping", this._draggingObject.getID());
+        }
+        this._draggingObject = undefined;
+        this._draggingHTML = undefined;
+        this._draggingOffset = utils.getZeroPosition();
+    }
+
+    _isDragging() {
+        if(this._draggingObject !== undefined && this._draggingHTML !== undefined) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
-     * Checks an HTML element to see if it's a logic brick.
-     * @param {HTMLElement} target HTML element to check if a brick.
+     * Checks an HTML element or JS object to see if it's a logic brick.
+     * @param {Object} target HTML element or LogicBrick to check if a brick.
      * @returns {Boolean} True if HTML element is a logic brick.
      */
-    _checkIfBrick(target) {
-        const targetIsBrick = target.classList.contains("logic-brick");
-        return targetIsBrick;
+    _isBrick(target) {
+        if(target instanceof HTMLElement) {
+            const targetIsBrick = target.classList.contains("logic-brick");
+            return targetIsBrick;
+        }
+        if(target instanceof LogicBrick) {
+            return true;
+        }
+        return false;
     }
 }

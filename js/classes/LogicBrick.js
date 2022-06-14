@@ -115,6 +115,45 @@ export default class LogicBrick {
         return this.result;
     }
 
+    // SENSORS
+
+    /**
+     * Check if this brick has a parent.
+     * @returns {Boolean} True/False.
+     */
+    hasParent() {
+        if(this.parent !== undefined) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Check if this brick has a specific child.
+     * @param {String} slot "left" or "right".
+     * @returns {Boolean} True/False.
+     */
+    hasChild(slot) {
+        if(this.children[slot] !== undefined) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Check if this brick has both children.
+     * @returns {Boolean} True/False.
+     */
+    hasTwoChildren() {
+        if(this.children.left !== undefined && this.children.right !== undefined) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     // PUBLIC METHODS
 
     /**
@@ -126,7 +165,7 @@ export default class LogicBrick {
      */
     attachChild(child, slot, doubleLinkCall) {
         // Check if child already has parent.
-        if(child.getParent() !== undefined && !doubleLinkCall) {
+        if(child.hasParent() && !doubleLinkCall) {
             console.warn(this.id, "Child already has parent.");
             return;
         }
@@ -147,7 +186,7 @@ export default class LogicBrick {
             break;
         }
         // If child does not have parent, attach self as parent.
-        if(child.getParent() === undefined && !doubleLinkCall) {
+        if(!child.hasParent() && !doubleLinkCall) {
             child.attachParent(this, slot, true);
         }
         // Once double link has been established, update root bricks.
@@ -170,7 +209,7 @@ export default class LogicBrick {
             return;   
         }
         // Check if slot in parent is already occupied.
-        if(parent.getChildren()[slot] !== undefined && !doubleLinkCall) {
+        if(parent.hasChild(slot) && !doubleLinkCall) {
             console.warn(this.id, `Parent already has child in ${slot} slot.`);
             return;
         }
@@ -181,7 +220,7 @@ export default class LogicBrick {
         this.setPosition(utils.getZeroPosition());
         this._HTMLNode.style.position = "initial";
         // If parent does not have child in this slot, attach self as child.
-        if(parent.getChildren()[slot] === undefined && !doubleLinkCall) {
+        if(!parent.hasChild(slot) && !doubleLinkCall) {
             parent.attachChild(this, slot, true);
         }
         // Once double link has been established, update root bricks.
@@ -206,10 +245,10 @@ export default class LogicBrick {
         // Sever self's link to child.
         this.children[slot] = undefined;
         // If child still has link to parent, sever child's link.
-        if(tempChild.getParent() !== undefined && !doubleLinkCall) {
+        if(tempChild.hasParent() && !doubleLinkCall) {
             tempChild.detachParent(true);
         }
-        // Once double link has been established, update root bricks.
+        // Once double link has been cut, update root bricks.
         if(doubleLinkCall) {
             this._brickyard._updateRootBricks();
         }
@@ -237,10 +276,10 @@ export default class LogicBrick {
         // Detach own HTML from parent HTML.
         this.bringToFront();
         // If parent still has link to self, sever parent's link.
-        if(tempParent.getChildren()[tempParentSlot] !== undefined && !doubleLinkCall) {
+        if(tempParent.hasChild(tempParentSlot) && !doubleLinkCall) {
             tempParent.detachChild(tempParentSlot, true);
         }
-        // Once double link has been established, update root bricks.
+        // Once double link has been cut, update root bricks.
         if(doubleLinkCall) {
             this._brickyard._updateRootBricks();
         }
@@ -250,6 +289,7 @@ export default class LogicBrick {
      * Bring this HTML element to the front by detaching from parent node and reattaching to container.
      */
     bringToFront() {
+        
         utils.getBrickyardRoot().appendChild(this._HTMLNode);
     }
 
