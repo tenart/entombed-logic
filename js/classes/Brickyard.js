@@ -127,19 +127,23 @@ export default class Brickyard {
 
     // Drag start.
     _onMouseDown(event) {
+        // Get cursor position at time of mousedown.
         const cursorPosition = {x: event.pageX, y: event.pageY}
         // Find closest HTML element with the "draggable" class.
         const targetHTML = event.target.closest(".draggable");
         if(targetHTML === null || targetHTML === undefined) { return }
         // Get ID and classes from HTML element.
         const targetID = targetHTML.getAttribute("id");
+        console.log("Clicked on", targetID);
         // If clicked on element is a logic brick.
         if(this._isBrick(targetHTML)) {
             const targetBrick = this.findBrickByID(targetID);
             this._draggingObject = targetBrick;
             this._draggingHTML = targetHTML;
             this._draggingOffset = utils.getPositionDiff(utils.getHTMLPosition(targetHTML, true), cursorPosition);
-            console.log("Dragging", this._draggingObject.getID());
+            // console.log("Dragging", this._draggingObject.getID());
+        } else {
+            console.log("foo");
         }
     }
 
@@ -161,7 +165,7 @@ export default class Brickyard {
     // Drag end.
     _onMouseUp(event) {
         if(this._isDragging()) {
-            console.log("Dropping", this._draggingObject.getID());
+            // console.log("Dropping", this._draggingObject.getID());
         }
         this._draggingObject = undefined;
         this._draggingHTML = undefined;

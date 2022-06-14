@@ -1,2 +1,5 @@
+# Most hidden files are ignored
+.*
 .DS_Store
-trash/*
+.vscode
+.trash

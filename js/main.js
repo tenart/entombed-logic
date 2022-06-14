@@ -1,4 +1,5 @@
 import Brickyard from "./classes/Brickyard.js";
+import DraggableElement from "./classes/DraggableElement.js";
 
 // Make new brickyard to edit bricks in.
 const brickyard = new Brickyard();
@@ -45,6 +46,9 @@ brickyard.attachBricks(brickL, brickM, "left");
 brickyard.printAllBrickIDs();
 brickyard.printRootBrickIDs();
 
+
+const defaultDraggableA = new DraggableElement();
+const defaultDraggableB = new DraggableElement(undefined, {x: 10, y: 10}, undefined);
 
 // testBrickD.remove();
 

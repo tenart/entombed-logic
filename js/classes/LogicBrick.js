@@ -4,6 +4,7 @@ import utils from "../utils.js";
  * Implementation of a logic brick.
  */
 export default class LogicBrick {
+    
     /**
      * Construct new logic brick.
      * @param {String} type The type of logic for this brick. Can be "and", "or", or "not".
