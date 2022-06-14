@@ -7,6 +7,9 @@ const utils = {
         OR: "or",
         NOT: "not"
     },
+    objectTypes: [
+        "logic-brick"
+    ],
     /**
      * Generate a new unique string ID. By chaitanyabd on GitHub.
      * https://gist.github.com/gordonbrander/2230317?permalink_comment_id=3443509#gistcomment-3443509
@@ -15,8 +18,8 @@ const utils = {
     newID: () => {
         return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
     },
-    getBrickyardRoot: () => {
-        return document.getElementById("brickyard-root");
+    getEditorRoot: () => {
+        return document.getElementById("editor-root");
     },
     /**
      * Calculate the difference of position B minus position A.

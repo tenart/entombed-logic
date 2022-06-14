@@ -1,20 +1,46 @@
 import utils from "../utils.js";
+import Draggable from "./Draggable.js";
+
+function paramsAreValid(type, position, editor) {
+    if(!["and", "or", "not"].includes(type)) {
+        console.warn("Invalid type for logic brick constructor.");
+        return false;
+    }
+    if(Number.isNaN(position.x) || Number.isNaN(position.y)) {
+        console.warn("Invalid position for logic brick constructor.");
+        return false;
+    }
+    if(editor === undefined) {
+        console.warn("Invalid editor reference for logic brick constructor.");
+        return false;
+    }
+    return true;
+}
 
 /**
- * Implementation of a logic brick.
- */
-export default class LogicBrick {
-    
-    /**
-     * Construct new logic brick.
-     * @param {String} type The type of logic for this brick. Can be "and", "or", or "not".
-     * @param {Object} position X and Y pixel position in the form of {x: Number, y: Number}.
-     * @param {Editor} editor The editor this brick is a part of.
-     * @return {LogicBrick} A new instance of a logic brick.
+     * Helper function to generate HTML string for a logic brick. 
+     * Should NOT be called directly.
+     * @return {String} The created HTML string.
      */
+function createBrickHTMLString(id, type) {
+    const HTMLString = `
+        <div id="${id}" class="logic-brick ${type}-brick draggable" data-type="${type}">
+            <div class="drop-slot slot-left"></div>
+            <p class="label">${type.toUpperCase()}</p>
+            <div class="drop-slot slot-right"></div>
+        </div>
+    `;
+    return HTMLString;
+}
+
+export default class NewLogicBrick extends Draggable {
     constructor(type, position, editor) {
-        // Encapsulate arguments, generate new ID, and create HTML element.
-        this.id = `${type}-${utils.newID()}`.toLowerCase();
+        // Validate parameters.
+        if(!paramsAreValid(type, position, editor)) { return }
+        // Construct base draggable object.
+        const newID = `${type}-${utils.newID()}`.toLowerCase();
+        const newHTMLString = createBrickHTMLString(newID, type);
+        super(newID, position, newHTMLString);
         // Logic fields.
         this.type = type.toLowerCase();              // The logic operation this brick will perform.
         this.result = undefined;       // The boolean value this block evaluates to.
@@ -24,38 +50,13 @@ export default class LogicBrick {
             left: undefined, 
             right: undefined
         }
-        // Capture HTML nodes.
-        this._HTMLNode = this._createBrickHTML();
+        // Helper fields.
         this._HTMLSlots = {
             left: document.querySelector(`#${this.id} .slot-left`),
             right: document.querySelector(`#${this.id} .slot-right`)
         }
-        // For dragging.
-        this.position = this.setPosition(position);
-        // this._isDragging = false;
-        // Editor reference.
         this._editor = editor;
-    }
-
-    // SETTERS
-
-    /**
-     * Set the pixel position of this logic brick.
-     * @param {Object} position X and Y pixel position in the form of {x: Number, y: Number}.
-     * @returns {Number} The set position.
-     */
-    setPosition(position) {
-        // Validate position argument.
-        if(Number.isNaN(position.x) || Number.isNaN(position.y)) {
-            console.warn(this.id, "One or more values is not a number. Defaulting to", utils.getZeroPosition());
-            position = utils.getZeroPosition();
-        }
-        // Update internal position and CSS position.
-        this.position = position;
-        this._HTMLNode.style.left = `${this.position.x}px`;
-        this._HTMLNode.style.top = `${this.position.y}px`;
-        // Return position if needed.
-        return position;
+        // this.fooBar();
     }
 
     // GETTERS
@@ -77,14 +78,6 @@ export default class LogicBrick {
     }
 
     /**
-     * Get this logic brick's pixel position.
-     * @returns {Object} The position in the form {x: Number, y: Number}.
-     */
-    getPosition() {
-        return this.position;
-    }
-
-    /**
      * Get the parent of this logic brick.
      * @returns {LogicBrick} The parent of this brick, can be undefined.
      */
@@ -101,19 +94,6 @@ export default class LogicBrick {
         // if(this.logicChildren.left === undefined) { console.log(this.id, "Has no left child.") }
         // if(this.logicChildren.right === undefined) { console.log(this.id, "Has no right child.") }
         return this.children;
-    }
-
-    /**
-     * Get this logic brick's HTML element.
-     * @returns {HTMLElement} The HTML element.
-     */
-    getHTMLNode() {
-        return this._HTMLNode;
-    }
-
-    getResult() {
-        // if(this.logicResult === undefined) { console.warn(this.id, "Cannot evaluate result.") }
-        return this.result;
     }
 
     // SENSORS
@@ -178,11 +158,11 @@ export default class LogicBrick {
         // Establish link.
         switch(slot) {
             case "left":
-                this._HTMLSlots.left.appendChild(child._HTMLNode);
+                this._HTMLSlots.left.appendChild(child.getHTMLElement());
                 this.children.left = child;
             break;
             case "right":
-                this._HTMLSlots.right.appendChild(child._HTMLNode);
+                this._HTMLSlots.right.appendChild(child.getHTMLElement());
                 this.children.right = child;
             break;
         }
@@ -219,7 +199,7 @@ export default class LogicBrick {
         this.parentSlot = slot;
         // Set child positioning to sit nicely inside parent's HTML.
         this.setPosition(utils.getZeroPosition());
-        this._HTMLNode.style.position = "initial";
+        this.getHTMLElement().style.position = "initial";
         // If parent does not have child in this slot, attach self as child.
         if(!parent.hasChild(slot) && !doubleLinkCall) {
             parent.attachChild(this, slot, true);
@@ -272,8 +252,8 @@ export default class LogicBrick {
         this.parent = undefined;
         this.parentSlot = undefined;
         // Reset internal position and HTML position.
-        this.setPosition(utils.getHTMLPosition(this._HTMLNode, true));
-        this._HTMLNode.style.position = "absolute";
+        this.setPosition(utils.getHTMLPosition(this.getHTMLElement(), true));
+        this.getHTMLElement().style.position = "absolute";
         // Detach own HTML from parent HTML.
         this.bringToFront();
         // If parent still has link to self, sever parent's link.
@@ -284,43 +264,5 @@ export default class LogicBrick {
         if(doubleLinkCall) {
             this._editor._updateRootBricks();
         }
-    }
-
-    /**
-     * Bring this HTML element to the front by detaching from parent node and reattaching to container.
-     */
-    bringToFront() {
-        utils.getEditorRoot().appendChild(this._HTMLNode);
-    }
-
-    /**
-     * Remove this brick and all its children. Also severs link to parent.
-     */
-    remove() {
-        // Detach from parent if exists.
-        if(this.parent !== undefined) {
-            this.detachParent();
-        }
-        this._HTMLNode.remove();
-    }
-
-    // PRIVATE METHODS
-
-    /**
-     * Helper function to generate and append HTML element to the DOM tree. 
-     * Should NOT be called directly.
-     * @return {HTMLElement} A reference to the appended HTML node.
-     */
-     _createBrickHTML() {
-        // Insert new HTML element.
-        utils.getEditorRoot().insertAdjacentHTML("beforeend", `
-            <div id="${this.id}" class="logic-brick ${this.type}-brick draggable" data-type="${this.type}">
-                <div class="drop-slot slot-left"></div>
-                <p class="label">${this.type.toUpperCase()}</p>
-                <div class="drop-slot slot-right"></div>
-            </div>
-        `);
-        // Return newly appended HTML element.
-        return document.getElementById(this.id);
     }
 }

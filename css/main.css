@@ -20,7 +20,7 @@ main > div {
     background-color: #000;
 }
 
-#brickyard-root {
+#editor-root {
     flex-grow: 1;
     background-color: #111;
 }

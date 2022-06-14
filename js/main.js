@@ -1,27 +1,27 @@
-import Brickyard from "./classes/Brickyard.js";
-import DraggableElement from "./classes/DraggableElement.js";
+import Editor from "./classes/Editor.js";
+import Draggable from "./classes/Draggable.js";
 
-// Make new brickyard to edit bricks in.
-const brickyard = new Brickyard();
+// Make new editor to edit bricks in.
+const editor = new Editor();
 
-const brickA = brickyard.createBrick("or", {x: 100, y: 100});
-const brickB = brickyard.createBrick("and", {x: 120, y: 120});
-const brickC = brickyard.createBrick("not", {x: 140, y: 140});
+const brickA = editor.createBrick("or", {x: 100, y: 100});
+const brickB = editor.createBrick("and", {x: 120, y: 120});
+const brickC = editor.createBrick("not", {x: 140, y: 140});
 
-const brickD = brickyard.createBrick("or", {x: 160, y: 160});
-const brickE = brickyard.createBrick("and", {x: 180, y: 180});
-const brickF = brickyard.createBrick("not", {x: 200, y: 200});
+const brickD = editor.createBrick("or", {x: 160, y: 160});
+const brickE = editor.createBrick("and", {x: 180, y: 180});
+const brickF = editor.createBrick("not", {x: 200, y: 200});
 
-const brickG = brickyard.createBrick("or", {x: 220, y: 220});
-const brickH = brickyard.createBrick("and", {x: 240, y: 240});
-const brickI = brickyard.createBrick("not", {x: 260, y: 260});
+const brickG = editor.createBrick("or", {x: 220, y: 220});
+const brickH = editor.createBrick("and", {x: 240, y: 240});
+const brickI = editor.createBrick("not", {x: 260, y: 260});
 
-const brickJ = brickyard.createBrick("or", {x: 280, y: 280});
-const brickK = brickyard.createBrick("and", {x: 300, y: 300});
-const brickL = brickyard.createBrick("not", {x: 320, y: 320});
-const brickM = brickyard.createBrick("or", {x: 340, y: 340});
+const brickJ = editor.createBrick("or", {x: 280, y: 280});
+const brickK = editor.createBrick("and", {x: 300, y: 300});
+const brickL = editor.createBrick("not", {x: 320, y: 320});
+const brickM = editor.createBrick("or", {x: 340, y: 340});
 
-const brickO = brickyard.createBrick("not", {x: 340, y: 340});
+const brickO = editor.createBrick("not", {x: 340, y: 340});
 
 // Attaching children directly.
 brickA.attachChild(brickB, "left");
@@ -31,24 +31,33 @@ brickA.attachChild(brickC, "right");
 brickE.attachParent(brickD, "left");
 brickF.attachParent(brickD, "right");
 
-// Attaching bricks through brickyard.
-brickyard.attachBricks(brickG, brickH, "left");
-brickyard.attachBricks(brickG, brickI, "right");
+// Attaching bricks through editor.
+editor.attachBricks(brickG, brickH, "left");
+editor.attachBricks(brickG, brickI, "right");
 
 // Mixing brick attachment methods.
 brickJ.attachChild(brickK, "left");
 brickL.attachParent(brickJ, "right");
-brickyard.attachBricks(brickL, brickM, "left");
+editor.attachBricks(brickL, brickM, "left");
 
 // brickJ.detachChild("right");
 
 
-brickyard.printAllBrickIDs();
-brickyard.printRootBrickIDs();
 
 
-const defaultDraggableA = new DraggableElement();
-const defaultDraggableB = new DraggableElement(undefined, {x: 10, y: 10}, undefined);
+
+const defaultDraggableA = editor.createBrick();
+const defaultDraggableB = editor.createBrick();
+
+// const draggableBrickA = editor.createNewTestBrick("and", {x: 40, y: 200});
+// const draggableBrickB = editor.createNewTestBrick("not", {x: 40, y: 220});
+// const draggableBrickC = editor.createNewTestBrick("or", {x: 40, y: 240});
+
+// draggableBrickA.attachChild(draggableBrickB, "left");
+
+editor.printAllObjectIDs();
+editor.printRootBrickIDs();
+// const defaultDraggableB = new DraggableElement(undefined, {x: 10, y: 10}, undefined);
 
 // testBrickD.remove();
 

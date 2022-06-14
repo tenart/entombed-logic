@@ -1,17 +1,19 @@
 import utils from "../utils.js";
+import Draggable from "./Draggable.js";
 import LogicBrick from "./LogicBrick.js";
+import NewLogicBrick from "./NewLogicBrick.js";
 
-export default class Brickyard {
+export default class Editor {
 
     /**
-     * Construct a new brickyard instance.
-     * @returns {Brickyard} The created instance.
+     * Construct a new editor instance.
+     * @returns {Editor} The created instance.
      */
     constructor() {
         // Keep track of bricks.
-        this.rootHTML = utils.getBrickyardRoot();
-        this.allBricks = [];
-        this.rootBricks = [];
+        this.rootHTML = utils.getEditorRoot();
+        this.allObjects = [];
+        this.binaryTreeRoots = [];
         // For dragging.
         this._draggingObject = undefined;
         this._draggingHTML = undefined;
@@ -23,19 +25,29 @@ export default class Brickyard {
     // GETTERS
 
     /**
-     * Get all logic bricks in this brickyard.
-     * @returns {Array} Array of all bricks.
+     * Get all objects in this editor.
+     * @returns {Array} Array of all objects.
      */
-    getAllBricks() {
-        return this.allBricks;
+    getAllObjects() {
+        return this.allObjects;
     }
 
     /**
-     * Get all root logic bricks in this brickyard.
+     * Get all root logic bricks in this editor.
      * @returns {Array} Array of all root bricks.
      */
-    getRootBricks() {
-        return this.rootBricks;
+    getBinaryTreeRoots() {
+        return this.binaryTreeRoots;
+    }
+
+    // SENSORS
+
+    _isDraggingSomething() {
+        if(this._draggingObject !== undefined && this._draggingHTML !== undefined) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // SETTERS
@@ -43,22 +55,29 @@ export default class Brickyard {
     // PUBLIC METHODS
 
     /**
-     * Construct new logic brick and add it to this brickyard.
+     * Construct new logic brick and add it to this editor.
      * @param {String} type The type of logic for this brick. Can be "and", "or", or "not".
      * @param {Object} position X and Y pixel position in the form of {x: Number, y: Number}.
-     * @return {LogicBrick} A new instance of a logic brick.
+     * @return {NewLogicBrick} A new instance of a logic brick.
      */
     createBrick(type, position) {
-        const newBrick = new LogicBrick(type, position, this);
-        this.allBricks.push(newBrick);
-        this._updateRootBricks();
-        return newBrick;
+        if(type === undefined && position === undefined) {
+            this._createDefaultDraggable();
+        } else {
+            const newBrick = new NewLogicBrick(type, position, this);
+            this._addNewObject(newBrick);
+            return newBrick;
+        }
+    }
+
+    createObject(type, position) {
+        // 
     }
 
     /**
      * Attach a child logic brick to a parent logic brick at a given slot.
-     * @param {LogicBrick} parent Parent logic brick to contain child.
-     * @param {LogicBrick} child Child logic brick to attach to parent.
+     * @param {NewLogicBrick} parent Parent logic brick to contain child.
+     * @param {NewLogicBrick} child Child logic brick to attach to parent.
      * @param {String} slot The parent slot to insert child into.
      */
     attachBricks(parent, child, slot) {
@@ -67,13 +86,13 @@ export default class Brickyard {
     }
 
     /**
-     * Print all brick IDs and indices.
+     * Print all object IDs and indices.
      */
-    printAllBrickIDs() {
-        const total = this.allBricks.length;
-        console.log(`${total} brick ${total === 1 ? "ID" : "IDs"}:`);
-        this.allBricks.forEach((brick, index) => {
-            console.log(index, brick.getType(), brick.getID());
+    printAllObjectIDs() {
+        const total = this.allObjects.length;
+        console.log(`${total} objects ${total === 1 ? "ID" : "IDs"}:`);
+        this.allObjects.forEach((object, index) => {
+            console.log(index, object.getType(), object.getID());
         });
     }
 
@@ -81,22 +100,22 @@ export default class Brickyard {
      * Print all root brick IDs and indices.
      */
     printRootBrickIDs() {
-        const total = this.rootBricks.length;
+        const total = this.binaryTreeRoots.length;
         console.log(`${total} root brick ${total === 1 ? "ID" : "IDs"}:`);
-        this.rootBricks.forEach((brick, index) => {
+        this.binaryTreeRoots.forEach((brick, index) => {
             console.log(index, brick.getType(), brick.getID());
         });
     }
 
     /**
-     * Find a brick by its ID.
-     * @param {String} brickID The ID of the brick to look for.
-     * @returns {LogicBrick} The found logic brick. Undefined if not found.
+     * Find a object by its ID.
+     * @param {String} IDString The ID of the object to look for.
+     * @returns {NewLogicBrick} The found object. Undefined if not found.
      */
-    findBrickByID(brickID) {
-        for(let i = 0; i < this.allBricks.length; i++) {
-            if(this.allBricks[i].getID() === brickID) {
-                return this.allBricks[i];
+    findObjectByID(IDString) {
+        for(let i = 0; i < this.allObjects.length; i++) {
+            if(this.allObjects[i].getID() === IDString) {
+                return this.allObjects[i];
             }
         }
         return undefined;
@@ -109,14 +128,14 @@ export default class Brickyard {
      */
     _updateRootBricks() {
         let newRootBricks = [];
-        this.allBricks.forEach((thisBrick) => {
+        this.allObjects.forEach((object) => {
             // If this brick has no parent, it is a root brick.
-            if(!thisBrick.hasParent()) { 
-                newRootBricks.push(thisBrick) 
+            if(object instanceof NewLogicBrick && !object.hasParent()) { 
+                newRootBricks.push(object) 
             }
         })
         // console.log(newRootBricks);
-        this.rootBricks = newRootBricks;
+        this.binaryTreeRoots = newRootBricks;
     }
 
     _attachEventListeners() {
@@ -130,32 +149,30 @@ export default class Brickyard {
         // Get cursor position at time of mousedown.
         const cursorPosition = {x: event.pageX, y: event.pageY}
         // Find closest HTML element with the "draggable" class.
-        const targetHTML = event.target.closest(".draggable");
-        if(targetHTML === null || targetHTML === undefined) { return }
+        const draggableHTML = event.target.closest(".draggable");
+        if(draggableHTML === null) { return }
         // Get ID and classes from HTML element.
-        const targetID = targetHTML.getAttribute("id");
-        console.log("Clicked on", targetID);
-        // If clicked on element is a logic brick.
-        if(this._isBrick(targetHTML)) {
-            const targetBrick = this.findBrickByID(targetID);
-            this._draggingObject = targetBrick;
-            this._draggingHTML = targetHTML;
-            this._draggingOffset = utils.getPositionDiff(utils.getHTMLPosition(targetHTML, true), cursorPosition);
-            // console.log("Dragging", this._draggingObject.getID());
-        } else {
-            console.log("foo");
-        }
+        const draggableID = draggableHTML.getAttribute("id");
+        console.log("Clicked on", draggableID);
+        // Set draggable element as target and get position offset.
+        const draggableObject = this.findObjectByID(draggableID);
+        this._draggingObject = draggableObject;
+        this._draggingHTML = draggableHTML;
+        this._draggingOffset = utils.getPositionDiff(utils.getHTMLPosition(draggableHTML, true), cursorPosition);
+
     }
 
     // During drag.
     _onMouseMove(event) {
         const cursorPosition = {x: event.pageX, y: event.pageY}
         // If something is being dragged.
-        if(this._isDragging()) {
+        if(this._isDraggingSomething()) {
             // If dragged item is a logic brick, detach parent if exists.
             if(this._isBrick(this._draggingObject) && this._draggingObject.hasParent()) {
+                console.log("Detaching", this._draggingObject.getID());
                 this._draggingObject.detachParent();
             }
+            // 
             const dragToPosition = utils.getPositionDiff(this._draggingOffset, cursorPosition);
             this._draggingObject.setPosition(dragToPosition);
             this._draggingObject.bringToFront();
@@ -164,7 +181,7 @@ export default class Brickyard {
 
     // Drag end.
     _onMouseUp(event) {
-        if(this._isDragging()) {
+        if(this._isDraggingSomething()) {
             // console.log("Dropping", this._draggingObject.getID());
         }
         this._draggingObject = undefined;
@@ -172,7 +189,7 @@ export default class Brickyard {
         this._draggingOffset = utils.getZeroPosition();
     }
 
-    _isDragging() {
+    _isDraggingSomething() {
         if(this._draggingObject !== undefined && this._draggingHTML !== undefined) {
             return true;
         } else {
@@ -182,7 +199,7 @@ export default class Brickyard {
 
     /**
      * Checks an HTML element or JS object to see if it's a logic brick.
-     * @param {Object} target HTML element or LogicBrick to check if a brick.
+     * @param {Object} target HTML element or NewLogicBrick to check if a brick.
      * @returns {Boolean} True if HTML element is a logic brick.
      */
     _isBrick(target) {
@@ -193,6 +210,20 @@ export default class Brickyard {
         if(target instanceof LogicBrick) {
             return true;
         }
+        if(target instanceof NewLogicBrick) {
+            return true;
+        }
         return false;
+    }
+
+    _createDefaultDraggable(id, position, HTMLString) {
+        const newDraggableElement = new Draggable(id, position, HTMLString);
+        this._addNewObject(newDraggableElement);
+        return newDraggableElement;
+    }
+    
+    _addNewObject(object) {
+        this.allObjects.push(object);
+        this._updateRootBricks();
     }
 }
