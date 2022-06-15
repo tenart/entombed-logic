@@ -4,11 +4,11 @@
     cursor: move;
 }
 
-.draggable:hover {
+/* .draggable:hover {
     box-shadow: 0 0 0 2px #0099ff;
 }
-
-.draggable:active {
+*/
+.draggable.drag-active {
     box-shadow: 0 0 0 4px #0099ff;
 }
 

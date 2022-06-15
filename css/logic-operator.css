@@ -1,5 +1,6 @@
 .logic-operator {
-    background-color: red;
+    background-color: white;
+    color: black;
     padding: 4px;
     border-radius: 999px;
     /* box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25); */
@@ -9,15 +10,11 @@
 }
 
 .logic-operator.and-operator {
-    background-color: green;
+    /* background-color: #7ec45c; */
 }
 
 .logic-operator.or-operator {
-    background-color: blue;
-}
-
-.logic-operator.active {
-    box-shadow: 0 0 0 2px yellow;
+    /* background-color: #457fcb; */
 }
 
 .logic-operator .label {
@@ -25,11 +22,19 @@
     margin: 0 8px;
 }
 
-.logic-operator .drop-slot {
+.logic-operator .drop-zone {
     min-height: 24px;
     min-width: 24px;
-    background-color: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 0 2px black;
     /* box-shadow: inset 0 2px 3px 0 rgba(0, 0, 0, 0.5); */
     flex-shrink: 0;
     border-radius: 999px;
+}
+
+.logic-operator .available-drop-zone {
+    box-shadow: 0 0 0 2px #0099ff;
+}
+
+.logic-operator .drop-zone.closest {
+    box-shadow: 0 0 0 2px #9000ff;
 }

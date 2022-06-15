@@ -1,5 +1,4 @@
 import Editor from "./classes/Editor.js";
-import Draggable from "./classes/Draggable.js";
 
 // Make new editor to edit bricks in.
 const editor = new Editor();
@@ -66,49 +65,12 @@ const brickO = editor.createObject("logic-operator", {
 });
 
 // Attaching children directly.
-brickA.attachChild(brickB, "left");
-brickA.attachChild(brickC, "right");
-
-// Attaching parents directly.
-brickE.attachParent(brickD, "left");
-brickF.attachParent(brickD, "right");
-
-// Attaching bricks through editor.
+editor.attachLogicOperators(brickA, brickB, "left");
+editor.attachLogicOperators(brickA, brickC, "right");
+editor.attachLogicOperators(brickD, brickE, "left");
+editor.attachLogicOperators(brickD, brickF, "right");
 editor.attachLogicOperators(brickG, brickH, "left");
 editor.attachLogicOperators(brickG, brickI, "right");
-
-// Mixing brick attachment methods.
-brickJ.attachChild(brickK, "left");
-brickL.attachParent(brickJ, "right");
+editor.attachLogicOperators(brickJ, brickK, "left");
+editor.attachLogicOperators(brickJ, brickL, "right");
 editor.attachLogicOperators(brickL, brickM, "left");
-
-brickJ.detachChild("right");
-brickM.detachParent();
-// editor.detachBricks();
-
-
-
-// editor.createObject();
-
-editor.createObject("draggable", {
-    position: {x: 500, y: 200}
-});
-
-editor.createObject("logic-operator", {
-    operator: "and",
-    position: {x: undefined, y: 10}
-});
-
-// editor.createObject("logic-operator");
-
-
-
-editor.printAllObjectIDs();
-editor.printRootOperatorIDs();
-
-
-// const defaultDraggableB = new DraggableElement(undefined, {x: 10, y: 10}, undefined);
-
-// testBrickD.remove();
-
-

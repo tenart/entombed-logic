@@ -1,10 +1,6 @@
 import KEYWORDS from "../keywords.js";
 import utils from "../utils.js";
 
-function validateInput() {
-
-}
-
 /**
  * Implementation of a draggable base element.
  */
@@ -21,9 +17,10 @@ export default class Draggable {
      */
     constructor(id = `${KEYWORDS.OBJECTS.DRAGGABLE}-${utils.newID()}`, position = utils.getZeroPosition(), HTMLString) {
         this.id = id;                                       // This object's unique string identifier. Defaults to random string.
-        this.type = KEYWORDS.OBJECTS.DRAGGABLE;  // This object's type identifier. Defaults to "draggable".
+        this.type = KEYWORDS.OBJECTS.DRAGGABLE;             // This object's type identifier. Defaults to "draggable".
         this.HTMLElement = this._createHTML(HTMLString);    // This object's reference to its HTML element.
         this.position = this.setPosition(position);         // This object's internal position in the form {x: Number, y: Number}.
+        this.isDragging = false;                            // This object's internal dragging flag.
     }
 
     // GETTERS
@@ -86,6 +83,16 @@ export default class Draggable {
         return position;
     }
 
+    onDragStart() {
+        this.isDragging = true;
+        this.HTMLElement.classList.add(KEYWORDS.DRAG_ACTIVE);
+    }
+
+    onDragStop() {
+        this.isDragging = false;
+        this.HTMLElement.classList.remove(KEYWORDS.DRAG_ACTIVE);
+    }
+
     /**
      * Bring this HTML element to the front by detaching from parent node and reattaching to container.
      */
@@ -123,12 +130,11 @@ export default class Draggable {
         return newHTMLElement;
     }
 
-    _getInfo() {
+    _getBasicInfo() {
         const info = {
             id: this.id,
             type: this.type,
             position: this.position,
-            // HTMLElement: this.HTMLElement
         }
         return info;
     }

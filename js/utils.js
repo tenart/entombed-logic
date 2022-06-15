@@ -34,6 +34,34 @@ const utils = {
             y: positionB.y - positionA.y,
         }
     },
+    getDistance: (positionA, positionB) => {
+        const x = positionB.x - positionA.x;
+        const y = positionB.y - positionA.y;
+        const distance = Math.sqrt(x * x + y * y);
+        return distance;
+    },
+    getHTMLSize: (HTMLElement) => {
+        const size = {
+            x: HTMLElement.offsetWidth,
+            y: HTMLElement.offsetHeight
+        }
+        return size;
+    },
+    getHTMLCenter: (HTMLElement) => {
+        const size = {
+            x: HTMLElement.offsetWidth,
+            y: HTMLElement.offsetHeight
+        }
+        const position = {
+            x: Math.round(HTMLElement.getBoundingClientRect().left),
+            y: Math.round(HTMLElement.getBoundingClientRect().top)
+        }
+        const center = {
+            x: position.x + (size.x / 2),
+            y: position.y + (size.y / 2),
+        }
+        return center;
+    },
     /**
      * Get the position of an HTML element relative to the whole document.
      * @param {HTMLElement} htmlNode The HTML element to get the position of.
