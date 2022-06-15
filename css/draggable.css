@@ -1,0 +1,26 @@
+.draggable {
+    position: absolute;
+    user-select: none;
+    cursor: move;
+}
+
+.draggable:hover {
+    box-shadow: 0 0 0 2px #0099ff;
+}
+
+.draggable:active {
+    box-shadow: 0 0 0 4px #0099ff;
+}
+
+.draggable-default {
+    /* background-color: yellow; */
+    border: 2px dashed yellow;
+    border-radius: 4px;
+    color: yellow;
+    font-weight: bolder;
+    height: 32px;
+    width: 128px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

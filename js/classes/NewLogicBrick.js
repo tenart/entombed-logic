@@ -1,3 +1,4 @@
+import KEYWORDS from "../keywords.js";
 import utils from "../utils.js";
 import Draggable from "./Draggable.js";
 
@@ -24,15 +25,18 @@ function paramsAreValid(type, position, editor) {
      */
 function createBrickHTMLString(id, type) {
     const HTMLString = `
-        <div id="${id}" class="logic-brick ${type}-brick draggable" data-type="${type}">
-            <div class="drop-slot slot-left"></div>
+        <div id="${id}" class="${KEYWORDS.OBJECTS.DRAGGABLE} ${type + KEYWORDS.SUFFIXES.OPERATOR} ${KEYWORDS.OBJECTS.LOGIC_OPERATOR}">
+            <div class="${KEYWORDS.DROP_SLOT} ${KEYWORDS.DROP_SLOT}-${KEYWORDS.LEFT}"></div>
             <p class="label">${type.toUpperCase()}</p>
-            <div class="drop-slot slot-right"></div>
+            <div class="${KEYWORDS.DROP_SLOT} ${KEYWORDS.DROP_SLOT}-${KEYWORDS.RIGHT}"></div>
         </div>
     `;
     return HTMLString;
 }
 
+/**
+ * Implementation of a draggable logic operator object.
+ */
 export default class NewLogicBrick extends Draggable {
     constructor(type, position, editor) {
         // Validate parameters.
@@ -42,7 +46,8 @@ export default class NewLogicBrick extends Draggable {
         const newHTMLString = createBrickHTMLString(newID, type);
         super(newID, position, newHTMLString);
         // Logic fields.
-        this.type = type.toLowerCase();              // The logic operation this brick will perform.
+        this.type = KEYWORDS.OBJECTS.LOGIC_OPERATOR;    // The logic operation this brick will perform.
+        this.logicType = type;
         this.result = undefined;       // The boolean value this block evaluates to.
         this.parent = undefined;       // The parent logic brick of this brick.
         this.parentSlot = undefined;   // The slot that this brick occupies in the parent brick.
@@ -52,8 +57,8 @@ export default class NewLogicBrick extends Draggable {
         }
         // Helper fields.
         this._HTMLSlots = {
-            left: document.querySelector(`#${this.id} .slot-left`),
-            right: document.querySelector(`#${this.id} .slot-right`)
+            left: document.querySelector(`#${this.id} .${KEYWORDS.DROP_SLOT}-${KEYWORDS.LEFT}`),
+            right: document.querySelector(`#${this.id} .${KEYWORDS.DROP_SLOT}-${KEYWORDS.RIGHT}`)
         }
         this._editor = editor;
         // this.fooBar();
@@ -82,7 +87,6 @@ export default class NewLogicBrick extends Draggable {
      * @returns {LogicBrick} The parent of this brick, can be undefined.
      */
     getParent() {
-        // if(this.parent === undefined) { console.log(this.id, "Has no parent.") }
         return this.parent;
     }
 
@@ -91,8 +95,6 @@ export default class NewLogicBrick extends Draggable {
      * @returns {Object} Children in the form {left: LogicBrick, right: LogicBrick}.
      */
     getChildren() {
-        // if(this.logicChildren.left === undefined) { console.log(this.id, "Has no left child.") }
-        // if(this.logicChildren.right === undefined) { console.log(this.id, "Has no right child.") }
         return this.children;
     }
 
@@ -157,11 +159,11 @@ export default class NewLogicBrick extends Draggable {
         }
         // Establish link.
         switch(slot) {
-            case "left":
+            case KEYWORDS.LEFT:
                 this._HTMLSlots.left.appendChild(child.getHTMLElement());
                 this.children.left = child;
             break;
-            case "right":
+            case KEYWORDS.RIGHT:
                 this._HTMLSlots.right.appendChild(child.getHTMLElement());
                 this.children.right = child;
             break;

@@ -1,3 +1,6 @@
+@import url("draggable.css");  /* Base draggable styling */
+@import url("logic-operator.css");  /* Logic-operator styling */
+
 body {
     font-family: sans-serif;
     color: #fff;
@@ -32,55 +35,3 @@ main > div {
     display: none;
 }
 
-.draggable {
-    position: absolute;
-    user-select: none;
-    cursor: move;
-}
-
-.draggable-default {
-    background-color: yellow;
-    color: black;
-    font-weight: bolder;
-    height: 32px;
-    width: 128px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.logic-brick {
-    background-color: red;
-    padding: 4px;
-    border-radius: 999px;
-    /* box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25); */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.logic-brick.and-brick {
-    background-color: green;
-}
-
-.logic-brick.or-brick {
-    background-color: blue;
-}
-
-.logic-brick.active {
-    box-shadow: 0 0 0 2px yellow;
-}
-
-.logic-brick .label {
-    font-size: 16px;
-    margin: 0 8px;
-}
-
-.logic-brick .drop-slot {
-    min-height: 24px;
-    min-width: 24px;
-    background-color: rgba(255, 255, 255, 0.75);
-    /* box-shadow: inset 0 2px 3px 0 rgba(0, 0, 0, 0.5); */
-    flex-shrink: 0;
-    border-radius: 999px;
-}

@@ -1,3 +1,4 @@
+import KEYWORDS from "../keywords.js";
 import utils from "../utils.js";
 import Draggable from "./Draggable.js";
 import LogicBrick from "./LogicBrick.js";
@@ -13,7 +14,7 @@ export default class Editor {
         // Keep track of bricks.
         this.rootHTML = utils.getEditorRoot();
         this.allObjects = [];
-        this.binaryTreeRoots = [];
+        this.rootOperators = [];
         // For dragging.
         this._draggingObject = undefined;
         this._draggingHTML = undefined;
@@ -33,15 +34,19 @@ export default class Editor {
     }
 
     /**
-     * Get all root logic bricks in this editor.
-     * @returns {Array} Array of all root bricks.
+     * Get all root logic-operators in this editor.
+     * @returns {Array} Array of all root logic-operators.
      */
-    getBinaryTreeRoots() {
-        return this.binaryTreeRoots;
+    getRootOperators() {
+        return this.rootOperators;
     }
 
     // SENSORS
 
+    /**
+     * Checks if something is targeted for dragging.
+     * @returns {Boolean} True / false.
+     */
     _isDraggingSomething() {
         if(this._draggingObject !== undefined && this._draggingHTML !== undefined) {
             return true;
@@ -50,37 +55,71 @@ export default class Editor {
         }
     }
 
-    // SETTERS
-
     // PUBLIC METHODS
 
     /**
-     * Construct new logic brick and add it to this editor.
-     * @param {String} type The type of logic for this brick. Can be "and", "or", or "not".
-     * @param {Object} position X and Y pixel position in the form of {x: Number, y: Number}.
-     * @return {NewLogicBrick} A new instance of a logic brick.
+     * Create a new object and add it to this editor's collection.
+     * @param {String} objectType What object to create.
+     * @param {Object} options Object options.
      */
-    createBrick(type, position) {
-        if(type === undefined && position === undefined) {
-            this._createDefaultDraggable();
-        } else {
-            const newBrick = new NewLogicBrick(type, position, this);
-            this._addNewObject(newBrick);
-            return newBrick;
+    createObject(objectType, options) {
+
+        // Check to see if object type string is valid.
+        if(!utils.getObjectTypeList().includes(objectType)) {
+            console.error("Invalid object type:", objectType);
+            console.warn("Valid types are:", utils.getObjectTypeList());
+            return;
+        }
+
+        // Check to see if options are valid.
+        switch(objectType) {
+            // Creating a new default draggable object.
+            case KEYWORDS.OBJECTS.DRAGGABLE:
+                const defaultDraggableOptions = {
+                    position: utils.getZeroPosition()
+                }
+                // If no/bad options given, use default position (position is the only option you can give a draggable when instantiating).
+                if(options === undefined || !utils.validatePosition(options.position)) {
+                    options = {
+                        position: utils.getZeroPosition()
+                    };
+                    console.warn("Invalid/missing 'position' option, using defaults instead:", options);
+                }
+                break;
+            // Creating a new logic-operator object.
+            case KEYWORDS.OBJECTS.LOGIC_OPERATOR:
+                if(options === undefined || options.operator === undefined || !utils.getOperatorList().includes(options.operator)) {
+                    console.error(`Invalid/missing 'operator' option field for ${KEYWORDS.OBJECTS.LOGIC_OPERATOR}.`);
+                    console.warn("Valid values are:", utils.getOperatorList());
+                    return;
+                }
+                if(!utils.validatePosition(options.position)) {
+                    options.position = utils.getZeroPosition();
+                    console.warn("Invalid/missing 'position' option, using defaults instead:", options);
+                }
+                break;
+        }
+        
+        // Actually creating the new object once options have been validated.
+        switch(objectType) {
+            case KEYWORDS.OBJECTS.LOGIC_OPERATOR:
+                // Creating a new logic-operator object.
+                return this._createLogicOperator(options.operator, options.position);
+                break;
+            case KEYWORDS.OBJECTS.DRAGGABLE:
+                // By default, create a placeholder.
+                return this._createDefaultDraggable(undefined, options.position, undefined);
+                break;
         }
     }
 
-    createObject(type, position) {
-        // 
-    }
-
     /**
-     * Attach a child logic brick to a parent logic brick at a given slot.
-     * @param {NewLogicBrick} parent Parent logic brick to contain child.
-     * @param {NewLogicBrick} child Child logic brick to attach to parent.
+     * Attach a child logic-operator to a parent logic-operator at a given slot.
+     * @param {NewLogicBrick} parent Parent logic-operator to contain child.
+     * @param {NewLogicBrick} child Child logic-operator to attach to parent.
      * @param {String} slot The parent slot to insert child into.
      */
-    attachBricks(parent, child, slot) {
+    attachLogicOperators(parent, child, slot) {
         parent.attachChild(child, slot);
         // this._updateRootBricks();
     }
@@ -97,18 +136,18 @@ export default class Editor {
     }
 
     /**
-     * Print all root brick IDs and indices.
+     * Print all root logic-operator IDs and indices.
      */
-    printRootBrickIDs() {
-        const total = this.binaryTreeRoots.length;
-        console.log(`${total} root brick ${total === 1 ? "ID" : "IDs"}:`);
-        this.binaryTreeRoots.forEach((brick, index) => {
+    printRootOperatorIDs() {
+        const total = this.rootOperators.length;
+        console.log(`${total} root logic-operators ${total === 1 ? "ID" : "IDs"}:`);
+        this.rootOperators.forEach((brick, index) => {
             console.log(index, brick.getType(), brick.getID());
         });
     }
 
     /**
-     * Find a object by its ID.
+     * Find an object by its ID.
      * @param {String} IDString The ID of the object to look for.
      * @returns {NewLogicBrick} The found object. Undefined if not found.
      */
@@ -124,6 +163,30 @@ export default class Editor {
     // PRIVATE METHODS
 
     /**
+     * Create a new default draggable object and add it to this editor's collection. Use undefined for default settings. Mostly used for testing.
+     * @param {String} id ID string to reference this object and HTML element.
+     * @param {Object} position Position in the form {x: Number, y: Number}.
+     * @param {String} HTMLString HTML string to render object as.
+     * @returns {Draggable} A new default draggable object
+     */
+     _createDefaultDraggable(id, position, HTMLString) {
+        const newDraggableElement = new Draggable(id, position, HTMLString);
+        this._addObjectToCollection(newDraggableElement);
+        return newDraggableElement;
+    }
+
+    _createLogicOperator(operator, position) {
+        const newLogicOperator = new NewLogicBrick(operator, position, this);
+        this._addObjectToCollection(newLogicOperator);
+        return newLogicOperator;
+    }
+    
+    _addObjectToCollection(object) {
+        this.allObjects.push(object);
+        this._updateRootBricks();
+    }
+
+    /**
      * Helper method to find and update all root bricks.
      */
     _updateRootBricks() {
@@ -135,7 +198,7 @@ export default class Editor {
             }
         })
         // console.log(newRootBricks);
-        this.binaryTreeRoots = newRootBricks;
+        this.rootOperators = newRootBricks;
     }
 
     _attachEventListeners() {
@@ -149,13 +212,14 @@ export default class Editor {
         // Get cursor position at time of mousedown.
         const cursorPosition = {x: event.pageX, y: event.pageY}
         // Find closest HTML element with the "draggable" class.
-        const draggableHTML = event.target.closest(".draggable");
+        const draggableHTML = event.target.closest(`.${KEYWORDS.OBJECTS.DRAGGABLE}`);
         if(draggableHTML === null) { return }
         // Get ID and classes from HTML element.
         const draggableID = draggableHTML.getAttribute("id");
-        console.log("Clicked on", draggableID);
+        // console.log("Clicked on", draggableID);
         // Set draggable element as target and get position offset.
         const draggableObject = this.findObjectByID(draggableID);
+        console.log(draggableObject._getInfo());
         this._draggingObject = draggableObject;
         this._draggingHTML = draggableHTML;
         this._draggingOffset = utils.getPositionDiff(utils.getHTMLPosition(draggableHTML, true), cursorPosition);
@@ -169,7 +233,7 @@ export default class Editor {
         if(this._isDraggingSomething()) {
             // If dragged item is a logic brick, detach parent if exists.
             if(this._isBrick(this._draggingObject) && this._draggingObject.hasParent()) {
-                console.log("Detaching", this._draggingObject.getID());
+                console.log("Detaching: ", this._draggingObject._getInfo());
                 this._draggingObject.detachParent();
             }
             // 
@@ -183,6 +247,7 @@ export default class Editor {
     _onMouseUp(event) {
         if(this._isDraggingSomething()) {
             // console.log("Dropping", this._draggingObject.getID());
+            
         }
         this._draggingObject = undefined;
         this._draggingHTML = undefined;
@@ -204,7 +269,7 @@ export default class Editor {
      */
     _isBrick(target) {
         if(target instanceof HTMLElement) {
-            const targetIsBrick = target.classList.contains("logic-brick");
+            const targetIsBrick = target.classList.contains(KEYWORDS.OBJECTS.LOGIC_OPERATOR);
             return targetIsBrick;
         }
         if(target instanceof LogicBrick) {
@@ -216,14 +281,4 @@ export default class Editor {
         return false;
     }
 
-    _createDefaultDraggable(id, position, HTMLString) {
-        const newDraggableElement = new Draggable(id, position, HTMLString);
-        this._addNewObject(newDraggableElement);
-        return newDraggableElement;
-    }
-    
-    _addNewObject(object) {
-        this.allObjects.push(object);
-        this._updateRootBricks();
-    }
 }
