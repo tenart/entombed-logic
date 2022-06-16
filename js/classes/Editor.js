@@ -258,8 +258,6 @@ export default class Editor {
         this._updateRootOperators();
         // Find all unoccupied drop zones and track them as available.
         this._updateAvailableDropZones();
-
-        
     }
 
     /**
@@ -290,34 +288,33 @@ export default class Editor {
                 if(!object.hasChild(KEYWORDS.LEFT)) {
                     object.getDropZoneHTML(KEYWORDS.LEFT).classList.add(KEYWORDS.AVAILABLE_DROP_ZONE);
                     newAvailableDropZones.push(object.getDropZoneHTML(KEYWORDS.LEFT));
-                } else {
-                    object.getDropZoneHTML(KEYWORDS.LEFT).classList.remove(KEYWORDS.AVAILABLE_DROP_ZONE);
                 }
                 if(!object.hasChild(KEYWORDS.RIGHT)) {
                     object.getDropZoneHTML(KEYWORDS.RIGHT).classList.add(KEYWORDS.AVAILABLE_DROP_ZONE);
                     newAvailableDropZones.push(object.getDropZoneHTML(KEYWORDS.RIGHT));
-                } else {
-                    object.getDropZoneHTML(KEYWORDS.RIGHT).classList.remove(KEYWORDS.AVAILABLE_DROP_ZONE);
                 }
             }
         });
         this.availableDropZones = newAvailableDropZones;
+        this._excludeDraggedDropZones(this._draggingObject);
     }
 
     /**
      * Helper method to remove the class "available-drop-zone" from all drop zones within the dragged object.
      */
     _excludeDraggedDropZones() {
-        // Select drop zones within dragged objects and remove the available keyword from them.
-        const excludedDropZones = document.querySelectorAll(`#${this._draggingObject.getID()} .${KEYWORDS.AVAILABLE_DROP_ZONE}`);
-        for(let i = 0; i < excludedDropZones.length; i++) {
-            excludedDropZones[i].classList.remove(KEYWORDS.AVAILABLE_DROP_ZONE);
-        }
-        // Get new list of available drop zones minus excluded ones.
-        this.availableDropZones = [];
-        const newAvailableDropZones = document.getElementsByClassName(KEYWORDS.AVAILABLE_DROP_ZONE);
-        for(let i = 0; i < newAvailableDropZones.length; i++) {
-            this.availableDropZones.push(newAvailableDropZones[i]);
+        if(this._draggingObject !== undefined) {
+            // Select drop zones within dragged objects and remove the available keyword from them.
+            const excludedDropZones = document.querySelectorAll(`#${this._draggingObject.getID()} .${KEYWORDS.AVAILABLE_DROP_ZONE}`);
+            excludedDropZones.forEach((dropZone) => {
+                dropZone.classList.remove(KEYWORDS.AVAILABLE_DROP_ZONE);
+            })
+            // Get new list of available drop zones minus excluded ones.
+            this.availableDropZones = [];
+            const newAvailableDropZones = document.getElementsByClassName(KEYWORDS.AVAILABLE_DROP_ZONE);
+            for(let i = 0; i < newAvailableDropZones.length; i++) {
+                this.availableDropZones.push(newAvailableDropZones[i]);
+            }
         }
     }
 
@@ -377,7 +374,8 @@ export default class Editor {
             this._draggingOffset = utils.getPositionDiff(utils.getHTMLPosition(draggableHTML, true), cursorPosition);
             // Let dragged object knows it's being dragged.
             this._draggingObject.onDragStart();
-            
+
+            this._updateAvailableDropZones();
         }
     }
 
@@ -398,8 +396,8 @@ export default class Editor {
                 
                 // Exclude drop zones inside dragged LogicOperator.
                 
-                this._updateAvailableDropZones();
-                this._excludeDraggedDropZones();
+                
+                
                 this._findNearestDropZone(cursorPosition);
             }
 
@@ -418,11 +416,6 @@ export default class Editor {
             this._draggingObject.onDragStop();
             // If dragging a LogicOperator.
             if(this._isLogicOperator(this._draggingObject)) {
-
-                // this._updateAvailableDropZones();
-                // this._excludeDraggedDropZones();
-                // this._findNearestDropZone(cursorPosition);
-
                 // Get drop zone's parent LogicOperator if exists.
                 if(this.targetDropZone !== undefined) {
                     const target = this._getDropZoneParentOperator(this.targetDropZone);
